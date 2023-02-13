@@ -13,8 +13,8 @@ const escape =  html => {
     .replace(/'/g, '&#039;');
 };
 
-exports.add = async (req, res) => {
-
+exports.vote = async (req, res) => {
+  const voterIp = requestIp.getClientIp(req);
   try {
     const { title, author, email } = req.fields;
 
