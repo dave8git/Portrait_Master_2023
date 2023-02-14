@@ -13,8 +13,8 @@ const escape =  html => {
     .replace(/'/g, '&#039;');
 };
 
-exports.vote = async (req, res) => {
-  const voterIp = requestIp.getClientIp(req);
+exports.add = async (req, res) => {
+
   try {
     const { title, author, email } = req.fields;
 
@@ -57,13 +57,26 @@ exports.loadAll = async (req, res) => {
 /****** VOTE FOR PHOTO ********/
 
 exports.vote = async (req, res) => {
-  
+  const voterIp = requestIp.getClientIp(req);
+  console.log(voterIp);
   try {
+    let voter = await Voter.findOne({user: voterIp }); 
+    if(!voter) {
+      voter = new Voter({ user: voterIp });
+    }
     const photoToUpdate = await Photo.findOne({ _id: req.params.id });
     if(!photoToUpdate) res.status(404).json({ message: 'Not found' });
     else {
-      photoToUpdate.votes++;
-      photoToUpdate.save();
+      if(!voter.votes.includes(photoToUpdate.id)) {
+        photoToUpdate.votes++;
+        voter.votes.push(photoToUpdate.id);
+        photoToUpdate.save();
+        voter.save();
+      } else {
+        res.json({ msg: 'You cannot vote twice, you cheater!'});
+      }
+      
+   
       res.send({ message: 'OK' });
     }
   } catch(err) {
